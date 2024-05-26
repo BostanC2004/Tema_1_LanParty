@@ -5,10 +5,10 @@
 
 int main()
 {
-    FILE *f =fopen ("/home/student/TemaPa/LanParty/date/t5/d.in", "r"); //deschidem fisierul
+    FILE *f =fopen ("date/t5/d.in", "r"); //deschidem fisierul
     if (f ==NULL)
     {
-        printf ("eroare"); //verificare daca se deschide
+        printf ("eroare6"); //verificare daca se deschide
         exit (1);
     }
     int nrechipe;
@@ -39,15 +39,71 @@ int main()
     } //determinam cea mai mare putere a lui 2 mai mica sau egala cu numarul de echipe
     while (numarechipe(head)>n) //scoatem echipele cu cele mai putine puncte pana ramanem cu n echipe
     {
-    scoateechipeslabe (&head);
+        scoateechipeslabe (&head);
     }
     rezultate (head); //scriem rezultatele
+
+    Queue *matchQueue = createQueue();
+    StackNode *castigatori =NULL;
+    StackNode *pierzatori = NULL;
     Node *curent = head;
-    while (curent != NULL)
+    while (curent !=NULL && curent ->next != NULL)
     {
-        printf ("%s", curent->numeechipa); //afisam numele echipelor ramase
-        curent =curent->next;
+        enQueue (matchQueue, curent, curent ->next);
+        curent =curent->next->next;
     }
+    while (!isQueueEmpty(matchQueue))
+    {
+        FILE *fr = fopen ("r3.out", "a");
+        if (fr == NULL)
+        {
+            printf("eroare7");
+            exit (1);
+        }
+        fprintf (fr, "Meciuri: \n");
+        QueueNode *match;
+        while ((match = deQueue(matchQueue))!=NULL)
+        {
+            fprintf (fr, "%s vs %s \n", match ->echipa1->numeechipa, match ->echipa2->numeechipa);
+            if (match ->echipa1->punctetotale >=match ->echipa2->punctetotale )
+            {
+                match->echipa1->punctetotale +=1;
+                push (&castigatori, match ->echipa1);
+                push (&pierzatori, match ->echipa2);
+            }
+            else
+            {
+                match ->echipa2->punctetotale +=1;
+                push (&castigatori, match ->echipa2);
+                push (&pierzatori, match ->echipa1);
+            }
+        }
+        fclose (fr);
+    }
+    FILE *frezultat = fopen("results(3).out", "w");
+    if (frezultat ==NULL)
+    {
+        printf ("eroare8");
+        exit (1);
+    }
+    fprintf (frezultat, "\nCastigatorii turneului: \n");
+    while (!isStackEmpty(castigatori))
+    {
+        Node *castigatori = pop (&castigatori);
+        fprintf (frezultat, "%s\n",castigatori->numeechipa);
+    }
+    fprintf (frezultat, "\nPierzatorii turneului: \n");
+    while (!isStackEmpty(pierzatori))
+    {
+        Node *pierzatori = pop (&pierzatori);
+        fprintf (frezultat, "%s\n", pierzatori->numeechipa);
+    }
+    fclose(frezultat);
+    deleteQueue(matchQueue);
+    deleteStack(&castigatori);
+    deleteStack (&pierzatori);
+
+
     return 0;
 }
 
